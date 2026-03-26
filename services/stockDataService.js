@@ -450,6 +450,24 @@ function applyIdxOfficialOverrides(stocks, idxPayload) {
 }
 
 /**
+ * Build bootstrap data without external network calls.
+ */
+function getBootstrapSnapshot() {
+  const daySeed = getDaySeed();
+  const stocks = IDX_STOCKS.map((stock, index) =>
+    generateStockData(stock, daySeed, index)
+  );
+
+  stocks.forEach(stock => {
+    stock.intradayData = generateIntradayData(stock, daySeed);
+    stock.dataQuality = stock.dataQuality || 'bootstrap_local';
+    stock.referenceUrl = stock.referenceUrl || 'https://idxdata3.co.id/?directory=.%2FDownload_Data%2FDaily%2FStock_Summary%2F';
+  });
+
+  return stocks;
+}
+
+/**
  * Fetch and process all stock data
  */
 async function fetchAllStockData() {
@@ -466,7 +484,7 @@ async function fetchAllStockData() {
       provider: 'IDX Daily Stock Summary',
     };
   } catch (err) {
-    // Strict behavior: never generate fresh random fallback when official source fails.
+    // If we already have previous official/cached data, keep serving it.
     if (cachedStockData && cachedStockData.length > 0) {
       lastSourceMeta = {
         ...lastSourceMeta,
@@ -478,7 +496,28 @@ async function fetchAllStockData() {
       return cachedStockData;
     }
 
-    throw new Error(`Official IDX source unavailable and no cached snapshot exists: ${err.message}`);
+    // Cold-start fallback: serve generated data so app remains usable.
+    lastSourceMeta = {
+      provider: 'Bootstrap Fallback (generated data)',
+      fileName: null,
+      fileUrl: null,
+      listingUrl: 'https://idxdata3.co.id/?directory=.%2FDownload_Data%2FDaily%2FStock_Summary%2F',
+      fetchedAt: new Date().toISOString(),
+      stale: true,
+      staleReason: err.message,
+    };
+
+    applyIdxOfficialOverrides(stocks, null);
+
+    stocks.forEach(stock => {
+      stock.intradayData = generateIntradayData(stock, daySeed);
+      stock.dataQuality = stock.dataQuality || 'bootstrap_fallback';
+    });
+
+    cachedStockData = stocks;
+    lastUpdateTime = new Date();
+
+    return stocks;
   }
 
   applyIdxOfficialOverrides(stocks, idxPayload);

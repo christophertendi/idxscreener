@@ -19,10 +19,11 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --- Data Cache ---
-let stockData = [];
-let newsData = [];
-let marketSummary = {};
-let koneksiKulturData = {};
+let stockData = getBootstrapSnapshot();
+let newsData = generateNews(stockData);
+let marketSummary = getMarketSummary(stockData);
+marketSummary.dataSource = getLastSourceMeta();
+let koneksiKulturData = generateKoneksiKulturData(stockData);
 let refreshPromise = null;
 
 async function refreshData() {
@@ -62,12 +63,22 @@ app.use('/api', async (req, res, next) => {
     await ensureDataLoaded();
     next();
   } catch (err) {
-    res.status(503).json({
-      success: false,
-      message: `Data initialization failed: ${err.message}`,
-      source: getLastSourceMeta(),
-      timestamp: new Date().toISOString(),
-    });
+    console.error('[API INIT] Falling back to bootstrap cache:', err.message);
+
+    if (!stockData || stockData.length === 0) {
+      stockData = getBootstrapSnapshot();
+      newsData = generateNews(stockData);
+      marketSummary = getMarketSummary(stockData);
+      marketSummary.dataSource = {
+        ...getLastSourceMeta(),
+        provider: 'Bootstrap cache fallback',
+        stale: true,
+        staleReason: err.message,
+      };
+      koneksiKulturData = generateKoneksiKulturData(stockData);
+    }
+
+    next();
   }
 });
 
