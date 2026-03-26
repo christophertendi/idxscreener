@@ -364,17 +364,61 @@
       <!-- Auth Bar -->
       <div class="stream-auth-bar" id="streamAuthBar">
         <div id="authLoggedOut">
-          <div class="auth-form">
+          <div class="auth-form" id="authSignInForm">
             <input type="email" id="authEmail" placeholder="Email" class="auth-input">
             <input type="password" id="authPassword" placeholder="Password" class="auth-input">
             <button class="auth-btn auth-btn-primary" onclick="streamSignIn()">Sign In</button>
-            <button class="auth-btn" onclick="streamSignUp()">Sign Up</button>
+            <button class="auth-btn" onclick="showSignUpForm()">Sign Up</button>
             <button class="auth-btn auth-btn-anon" onclick="streamSignInAnon()">Anonymous</button>
+          </div>
+          <!-- Sign Up Expanded Form -->
+          <div class="auth-signup-form" id="authSignUpForm" style="display:none;">
+            <div class="signup-panel">
+              <div class="signup-title">Create Account</div>
+              <div class="signup-row">
+                <label class="signup-label">Username</label>
+                <input type="text" id="signupUsername" placeholder="Pick a display name" class="auth-input signup-input" maxlength="24" oninput="validateSignupForm()">
+                <div class="signup-hint" id="usernameHint">3-24 characters, letters/numbers/underscores</div>
+              </div>
+              <div class="signup-row">
+                <label class="signup-label">Email</label>
+                <input type="email" id="signupEmail" placeholder="your@email.com" class="auth-input signup-input" oninput="validateSignupForm()">
+              </div>
+              <div class="signup-row">
+                <label class="signup-label">Password</label>
+                <input type="password" id="signupPassword" placeholder="Min 8 characters" class="auth-input signup-input" oninput="validateSignupForm()">
+                <div class="pw-strength-bar"><div class="pw-strength-fill" id="pwStrengthFill"></div></div>
+                <div class="pw-strength-text" id="pwStrengthText">Enter a password</div>
+                <div class="pw-rules" id="pwRules">
+                  <div class="pw-rule" id="pwLen">✕ At least 8 characters</div>
+                  <div class="pw-rule" id="pwUpper">✕ One uppercase letter</div>
+                  <div class="pw-rule" id="pwLower">✕ One lowercase letter</div>
+                  <div class="pw-rule" id="pwNum">✕ One number</div>
+                  <div class="pw-rule" id="pwSpecial">✕ One special character (!@#$...)</div>
+                </div>
+              </div>
+              <div class="signup-row">
+                <label class="signup-label">Confirm Password</label>
+                <input type="password" id="signupConfirm" placeholder="Re-enter password" class="auth-input signup-input" oninput="validateSignupForm()">
+                <div class="signup-hint" id="confirmHint"></div>
+              </div>
+              <div class="signup-actions">
+                <button class="auth-btn auth-btn-primary" id="signupSubmitBtn" onclick="streamSignUp()" disabled>Create Account</button>
+                <button class="auth-btn" onclick="hideSignUpForm()">Cancel</button>
+              </div>
+            </div>
+          </div>
+          <!-- Email verification banner -->
+          <div class="auth-verify-banner" id="authVerifyBanner" style="display:none;">
+            <span>A verification link has been sent to your email. Please check your inbox and click the link to verify your account.</span>
+            <button class="auth-btn" onclick="resendVerification()">Resend Email</button>
+            <button class="auth-btn" onclick="checkVerification()">I've Verified</button>
           </div>
         </div>
         <div id="authLoggedIn" style="display:none;">
           <div class="auth-user-bar">
             <span class="auth-user-name" id="authUserName">--</span>
+            <span class="auth-user-email" id="authUserEmail" style="font-size:9px;color:var(--text-muted);"></span>
             <button class="auth-btn" onclick="streamSignOut()">Sign Out</button>
           </div>
         </div>

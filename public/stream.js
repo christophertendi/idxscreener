@@ -19,25 +19,43 @@ const db = firebase.firestore();
 let currentUser = null;
 let expandedPosts = new Set();
 
+function getDisplayName(user) {
+  if (!user) return 'Anonymous';
+  if (user.isAnonymous) return 'Anonymous';
+  return user.displayName || user.email || 'User';
+}
+
 auth.onAuthStateChanged(user => {
   currentUser = user;
   const loggedOut = document.getElementById('authLoggedOut');
   const loggedIn = document.getElementById('authLoggedIn');
   const composer = document.getElementById('streamComposer');
   const userName = document.getElementById('authUserName');
+  const userEmail = document.getElementById('authUserEmail');
+  const verifyBanner = document.getElementById('authVerifyBanner');
 
   if (user) {
     if (loggedOut) loggedOut.style.display = 'none';
     if (loggedIn) loggedIn.style.display = 'block';
-    if (composer) composer.style.display = 'block';
-    if (userName) userName.textContent = user.isAnonymous ? 'Anonymous User' : (user.email || 'User');
+    if (userName) userName.textContent = getDisplayName(user);
+    if (userEmail) userEmail.textContent = user.isAnonymous ? '' : (user.email || '');
+
+    if (!user.isAnonymous && !user.emailVerified) {
+      if (composer) composer.style.display = 'none';
+      if (verifyBanner) verifyBanner.style.display = 'flex';
+    } else {
+      if (composer) composer.style.display = 'block';
+      if (verifyBanner) verifyBanner.style.display = 'none';
+    }
   } else {
     if (loggedOut) loggedOut.style.display = 'block';
     if (loggedIn) loggedIn.style.display = 'none';
     if (composer) composer.style.display = 'none';
+    if (verifyBanner) verifyBanner.style.display = 'none';
   }
 });
 
+// --- Sign In ---
 async function streamSignIn() {
   const email = document.getElementById('authEmail').value.trim();
   const pw = document.getElementById('authPassword').value;
@@ -48,16 +66,107 @@ async function streamSignIn() {
   } catch (e) { alert(e.message); }
 }
 
+// --- Sign Up form toggle ---
+function showSignUpForm() {
+  document.getElementById('authSignInForm').style.display = 'none';
+  document.getElementById('authSignUpForm').style.display = 'block';
+}
+function hideSignUpForm() {
+  document.getElementById('authSignUpForm').style.display = 'none';
+  document.getElementById('authSignInForm').style.display = 'flex';
+}
+
+// --- Password strength validator ---
+function validateSignupForm() {
+  const pw = document.getElementById('signupPassword').value;
+  const confirm = document.getElementById('signupConfirm').value;
+  const username = document.getElementById('signupUsername').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+
+  const checks = {
+    len: pw.length >= 8,
+    upper: /[A-Z]/.test(pw),
+    lower: /[a-z]/.test(pw),
+    num: /[0-9]/.test(pw),
+    special: /[^A-Za-z0-9]/.test(pw),
+  };
+
+  const score = Object.values(checks).filter(Boolean).length;
+  const fill = document.getElementById('pwStrengthFill');
+  const text = document.getElementById('pwStrengthText');
+
+  const pct = (score / 5) * 100;
+  fill.style.width = pct + '%';
+  if (score <= 1) { fill.style.background = 'var(--negative)'; text.textContent = 'Very weak'; text.style.color = 'var(--negative)'; }
+  else if (score === 2) { fill.style.background = 'var(--negative)'; text.textContent = 'Weak'; text.style.color = 'var(--negative)'; }
+  else if (score === 3) { fill.style.background = 'var(--warning)'; text.textContent = 'Fair'; text.style.color = 'var(--warning)'; }
+  else if (score === 4) { fill.style.background = 'var(--positive)'; text.textContent = 'Strong'; text.style.color = 'var(--positive)'; }
+  else { fill.style.background = 'var(--accent-cyan)'; text.textContent = 'Very strong'; text.style.color = 'var(--accent-cyan)'; }
+
+  if (!pw) { text.textContent = 'Enter a password'; text.style.color = 'var(--text-muted)'; fill.style.width = '0%'; }
+
+  ['Len', 'Upper', 'Lower', 'Num', 'Special'].forEach(k => {
+    const el = document.getElementById('pw' + k);
+    const key = k.toLowerCase();
+    if (checks[key]) { el.className = 'pw-rule pass'; el.textContent = '\u2713 ' + el.textContent.slice(2); }
+    else { el.className = 'pw-rule fail'; el.textContent = '\u2715 ' + el.textContent.slice(2); }
+  });
+
+  const confirmHint = document.getElementById('confirmHint');
+  if (confirm && confirm !== pw) { confirmHint.textContent = 'Passwords do not match'; confirmHint.className = 'signup-hint error'; }
+  else if (confirm && confirm === pw) { confirmHint.textContent = 'Passwords match'; confirmHint.className = 'signup-hint success'; }
+  else { confirmHint.textContent = ''; confirmHint.className = 'signup-hint'; }
+
+  const usernameHint = document.getElementById('usernameHint');
+  const usernameValid = /^[a-zA-Z0-9_]{3,24}$/.test(username);
+  if (username && !usernameValid) { usernameHint.textContent = 'Invalid: 3-24 chars, letters/numbers/underscores only'; usernameHint.className = 'signup-hint error'; }
+  else if (username && usernameValid) { usernameHint.textContent = 'Looks good!'; usernameHint.className = 'signup-hint success'; }
+  else { usernameHint.textContent = '3-24 characters, letters/numbers/underscores'; usernameHint.className = 'signup-hint'; }
+
+  const canSubmit = usernameValid && email.includes('@') && score >= 3 && pw === confirm && pw.length >= 8;
+  document.getElementById('signupSubmitBtn').disabled = !canSubmit;
+}
+
+// --- Sign Up with email verification ---
 async function streamSignUp() {
-  const email = document.getElementById('authEmail').value.trim();
-  const pw = document.getElementById('authPassword').value;
-  if (!email || !pw) return;
+  const username = document.getElementById('signupUsername').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const pw = document.getElementById('signupPassword').value;
+
+  if (!username || !email || !pw) return;
+
   try {
-    await auth.createUserWithEmailAndPassword(email, pw);
+    const cred = await auth.createUserWithEmailAndPassword(email, pw);
+    await cred.user.updateProfile({ displayName: username });
+    await cred.user.sendEmailVerification();
+    hideSignUpForm();
     loadStreamPosts();
   } catch (e) { alert(e.message); }
 }
 
+async function resendVerification() {
+  if (currentUser && !currentUser.emailVerified) {
+    try {
+      await currentUser.sendEmailVerification();
+      alert('Verification email sent! Check your inbox.');
+    } catch (e) { alert(e.message); }
+  }
+}
+
+async function checkVerification() {
+  if (currentUser) {
+    await currentUser.reload();
+    if (currentUser.emailVerified) {
+      document.getElementById('authVerifyBanner').style.display = 'none';
+      document.getElementById('streamComposer').style.display = 'block';
+      alert('Email verified! You can now post.');
+    } else {
+      alert('Email not yet verified. Please check your inbox and click the verification link.');
+    }
+  }
+}
+
+// --- Anonymous ---
 async function streamSignInAnon() {
   try {
     await auth.signInAnonymously();
@@ -65,6 +174,7 @@ async function streamSignInAnon() {
   } catch (e) { alert(e.message); }
 }
 
+// --- Sign Out ---
 async function streamSignOut() {
   await auth.signOut();
 }
@@ -83,7 +193,7 @@ async function streamCreatePost() {
     tag,
     ticker: ticker || null,
     authorId: currentUser.uid,
-    authorName: currentUser.isAnonymous ? 'Anonymous' : (currentUser.email || 'User'),
+    authorName: getDisplayName(currentUser),
     upvotes: 0,
     downvotes: 0,
     voters: {},
@@ -220,7 +330,7 @@ async function streamAddComment(postId) {
   await db.collection('posts').doc(postId).collection('comments').add({
     body,
     authorId: currentUser.uid,
-    authorName: currentUser.isAnonymous ? 'Anonymous' : (currentUser.email || 'User'),
+    authorName: getDisplayName(currentUser),
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
   });
 

@@ -2066,3 +2066,27 @@ body {
   .auth-form { flex-direction: column; }
   .post-vote { min-width: 32px; padding: 8px 4px; }
 }
+
+/* Signup form */
+.auth-signup-form { margin-top: 12px; }
+.signup-panel { background: var(--bg-secondary); border: 1px solid var(--border-secondary); border-radius: 6px; padding: 18px 20px; max-width: 420px; }
+.signup-title { font-size: 13px; font-weight: 700; letter-spacing: 1.5px; color: var(--text-primary); margin-bottom: 14px; }
+.signup-row { margin-bottom: 12px; }
+.signup-label { display: block; font-size: 9px; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 4px; font-weight: 600; }
+.signup-input { width: 100%; }
+.signup-hint { font-size: 9px; color: var(--text-muted); margin-top: 3px; }
+.signup-hint.error { color: var(--negative); }
+.signup-hint.success { color: var(--positive); }
+.signup-actions { display: flex; gap: 8px; margin-top: 14px; }
+
+/* Password strength */
+.pw-strength-bar { height: 4px; background: var(--bg-primary); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+.pw-strength-fill { height: 100%; width: 0%; border-radius: 2px; transition: width 0.3s, background 0.3s; }
+.pw-strength-text { font-size: 9px; margin-top: 3px; color: var(--text-muted); font-weight: 600; }
+.pw-rules { margin-top: 6px; }
+.pw-rule { font-size: 9px; color: var(--text-muted); padding: 1px 0; }
+.pw-rule.pass { color: var(--positive); }
+.pw-rule.fail { color: var(--text-muted); }
+
+/* Email verification banner */
+.auth-verify-banner { background: var(--warning-dim); border: 1px solid rgba(245,158,11,0.3); border-radius: 4px; padding: 10px 14px; margin-top: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 10px; color: var(--warning); }
