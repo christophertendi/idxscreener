@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IDX Supercomputer | Indonesian Stock Exchange Dashboard</title>
+  <!-- Using system font Arial -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Top Header Bar -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-icon">◆</span>
+        <span class="logo-text">IDX SUPERCOMPUTER</span>
+        <span class="logo-sub">TERMINAL</span>
+      </div>
+    </div>
+    <div class="header-center">
+      <div class="market-ticker" id="marketTicker">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-info">
+        <span class="update-status" id="updateStatus">● LIVE</span>
+        <span class="datetime" id="datetime"></span>
+      </div>
+      <button class="btn-refresh" onclick="refreshAllData()" title="Refresh Data">⟳</button>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="nav-bar">
+    <div class="nav-tabs">
+      <button class="nav-tab active" data-view="overview" onclick="switchView('overview')">
+        <span class="tab-icon">◫</span> OVERVIEW
+      </button>
+      <button class="nav-tab" data-view="rankings" onclick="switchView('rankings')">
+        <span class="tab-icon">▤</span> RANKINGS
+      </button>
+      <button class="nav-tab" data-view="screener" onclick="switchView('screener')">
+        <span class="tab-icon">◈</span> SCREENER
+      </button>
+      <button class="nav-tab" data-view="news" onclick="switchView('news')">
+        <span class="tab-icon">◰</span> NEWS
+      </button>
+      <button class="nav-tab" data-view="koneksi" onclick="switchView('koneksi')">
+        <span class="tab-icon">◉</span> KONEKSI & KULTUR
+      </button>
+      <button class="nav-tab" data-view="supply" onclick="switchView('supply')">
+        <span class="tab-icon">◇</span> SUPPLY CHAIN
+      </button>
+      <button class="nav-tab" data-view="informal" onclick="switchView('informal')">
+        <span class="tab-icon">◌</span> INFORMAL ECONOMY
+      </button>
+    </div>
+    <div class="nav-search">
+      <input type="text" id="searchInput" placeholder="Search ticker..." oninput="handleSearch(this.value)">
+      <div class="search-results" id="searchResults"></div>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+
+    <!-- ============ OVERVIEW VIEW ============ -->
+    <div class="view active" id="view-overview">
+      <!-- Market Summary Row -->
+      <div class="summary-row" id="summaryRow">
+        <!-- Filled by JS -->
+      </div>
+
+      <!-- Grid Layout: Top Movers + Key Metrics -->
+      <div class="overview-grid">
+        <!-- Left: IHSG & Market Breadth -->
+        <div class="panel panel-market">
+          <div class="panel-header">
+            <h3>IHSG / JCI INDEX</h3>
+            <span class="badge" id="ihsgBadge">--</span>
+          </div>
+          <div class="panel-body">
+            <div class="ihsg-display" id="ihsgDisplay">
+              <!-- Filled by JS -->
+            </div>
+            <div class="breadth-bar" id="breadthBar">
+              <!-- Filled by JS -->
+            </div>
+            <div class="sector-heatmap" id="sectorHeatmap">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Middle: Today's Top Movers -->
+        <div class="panel panel-movers">
+          <div class="panel-header">
+            <h3>TOP MOVERS TODAY</h3>
+            <div class="toggle-group">
+              <button class="toggle active" onclick="toggleMovers('gainers')">▲ Gainers</button>
+              <button class="toggle" onclick="toggleMovers('losers')">▼ Losers</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="movers-table" id="moversTable">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Foreign Flow & Bandar -->
+        <div class="panel panel-flow">
+          <div class="panel-header">
+            <h3>MONEY FLOW</h3>
+            <span class="badge badge-info">FOREIGN + BANDAR</span>
+          </div>
+          <div class="panel-body">
+            <div class="flow-summary" id="flowSummary">
+              <!-- Filled by JS -->
+            </div>
+            <div class="flow-table" id="flowTable">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Row: ARA/ARB + Latest News -->
+      <div class="overview-bottom">
+        <div class="panel panel-ara-arb">
+          <div class="panel-header">
+            <h3>ARA / ARB MONITOR</h3>
+          </div>
+          <div class="panel-body">
+            <div id="araArbList">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+        </div>
+
+        <div class="panel panel-quick-news">
+          <div class="panel-header">
+            <h3>LATEST NEWS FEED</h3>
+            <span class="badge badge-pulse">LIVE</span>
+          </div>
+          <div class="panel-body">
+            <div class="news-scroll" id="newsScroll">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ RANKINGS VIEW ============ -->
+    <div class="view" id="view-rankings">
+      <div class="rankings-header">
+        <h2>STOCK RANKINGS</h2>
+        <p class="subtitle">Best & Worst 20 stocks for Day Trading and Investment across all timeframes</p>
+        <div class="timeframe-tabs">
+          <button class="tf-tab active" onclick="switchTimeframe('daily')">
+            <span class="tf-label">DAILY</span>
+            <span class="tf-desc">Day Trade</span>
+          </button>
+          <button class="tf-tab" onclick="switchTimeframe('weekly')">
+            <span class="tf-label">WEEKLY</span>
+            <span class="tf-desc">Swing Trade</span>
+          </button>
+          <button class="tf-tab" onclick="switchTimeframe('monthly')">
+            <span class="tf-label">MONTHLY</span>
+            <span class="tf-desc">Position</span>
+          </button>
+          <button class="tf-tab" onclick="switchTimeframe('quarterly')">
+            <span class="tf-label">QUARTERLY</span>
+            <span class="tf-desc">Mid-Term</span>
+          </button>
+          <button class="tf-tab" onclick="switchTimeframe('yearly')">
+            <span class="tf-label">YEARLY</span>
+            <span class="tf-desc">Investment</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="rankings-grid">
+        <!-- Best 20 -->
+        <div class="panel">
+          <div class="panel-header">
+            <h3>▲ BEST 20</h3>
+            <span class="badge badge-positive" id="bestLabel">TOP PERFORMERS</span>
+          </div>
+          <div class="panel-body">
+            <div class="ranking-table" id="bestRankingTable">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Worst 20 -->
+        <div class="panel">
+          <div class="panel-header">
+            <h3>▼ WORST 20</h3>
+            <span class="badge badge-negative" id="worstLabel">UNDERPERFORMERS</span>
+          </div>
+          <div class="panel-body">
+            <div class="ranking-table" id="worstRankingTable">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SCREENER VIEW ============ -->
+    <div class="view" id="view-screener">
+      <div class="screener-header">
+        <h2>STOCK SCREENER</h2>
+        <p class="subtitle">Official IDX stock summary fields (1:1 mapped per refresh)</p>
+        <p class="subtitle" id="screenerSourceMeta">Source: --</p>
+        <div class="screener-filters">
+          <select id="sectorFilter" onchange="applyScreenerFilters()">
+            <option value="all">All Sectors</option>
+          </select>
+          <select id="sortFilter" onchange="applyScreenerFilters()">
+            <option value="changePercent">Change %</option>
+            <option value="currentPrice">Close Price</option>
+            <option value="volume">Volume</option>
+            <option value="value">Value</option>
+            <option value="open">Open</option>
+            <option value="high">High</option>
+            <option value="low">Low</option>
+            <option value="prevClose">Prev Close</option>
+            <option value="bidPrice">Bid</option>
+            <option value="askPrice">Ask</option>
+          </select>
+          <button class="btn-sm" onclick="toggleSortOrder()">
+            <span id="sortOrderIcon">▼</span>
+          </button>
+        </div>
+      </div>
+      <div class="screener-table-wrapper">
+        <table class="screener-table" id="screenerTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>TICKER</th>
+              <th>NAME</th>
+              <th>OPEN</th>
+              <th>HIGH</th>
+              <th>LOW</th>
+              <th>CLOSE</th>
+              <th>PREV</th>
+              <th>CHG %</th>
+              <th>VOLUME</th>
+              <th>VALUE (M)</th>
+              <th>BID</th>
+              <th>ASK</th>
+              <th>SOURCE</th>
+            </tr>
+          </thead>
+          <tbody id="screenerBody">
+            <!-- Filled by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============ NEWS VIEW ============ -->
+    <div class="view" id="view-news">
+      <div class="news-header">
+        <h2>NEWS & ANALYSIS</h2>
+        <p class="subtitle">Market intelligence across all timeframes</p>
+        <div class="news-filters">
+          <button class="nf-tab active" onclick="filterNews('all')">ALL</button>
+          <button class="nf-tab" onclick="filterNews('daily')">DAILY</button>
+          <button class="nf-tab" onclick="filterNews('weekly')">WEEKLY</button>
+          <button class="nf-tab" onclick="filterNews('monthly')">MONTHLY</button>
+          <button class="nf-tab" onclick="filterNews('quarterly')">QUARTERLY</button>
+          <button class="nf-tab" onclick="filterNews('yearly')">YEARLY</button>
+        </div>
+      </div>
+      <div class="news-grid" id="newsGrid">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- ============ KONEKSI & KULTUR VIEW ============ -->
+    <div class="view" id="view-koneksi">
+      <div class="kk-header">
+        <h2>KONEKSI & KULTUR INTELLIGENCE</h2>
+        <p class="subtitle">"The most important financial statement isn't the balance sheet — it's the family tree."</p>
+        <div class="kk-subtabs">
+          <button class="kk-tab active" onclick="switchKKTab('political')">POLITICAL RISK</button>
+          <button class="kk-tab" onclick="switchKKTab('social')">SOCIAL SENTIMENT</button>
+          <button class="kk-tab" onclick="switchKKTab('cultural')">CULTURAL CATALYSTS</button>
+          <button class="kk-tab" onclick="switchKKTab('conglomerate')">CONGLOMERATES</button>
+          <button class="kk-tab" onclick="switchKKTab('wealth')">WEALTH TRANSFER</button>
+        </div>
+      </div>
+
+      <!-- Political Risk Radar -->
+      <div class="kk-section active" id="kk-political">
+        <div class="kk-grid-3">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>REGULATORY IMPACT RADAR</h3>
+              <span class="badge badge-negative" id="riskLevelBadge">--</span>
+            </div>
+            <div class="panel-body" id="regulatoryRadar"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <h3>GOVERNMENT TENDER MONITOR</h3>
+              <span class="badge badge-info">LIVE TRACKING</span>
+            </div>
+            <div class="panel-body" id="tenderMonitor"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <h3>POLITICAL CONNECTION HEATMAP</h3>
+              <span class="badge badge-info">TIER SYSTEM</span>
+            </div>
+            <div class="panel-body" id="politicalHeatmap"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Social Sentiment Fusion -->
+      <div class="kk-section" id="kk-social">
+        <div class="kk-grid-2">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>INFLUENCER IMPACT TRACKER</h3>
+              <span class="badge badge-info">TIKTOK · IG · YT · X</span>
+            </div>
+            <div class="panel-body" id="influencerTracker"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <h3>WARUNG KOPI CHATTER</h3>
+              <span class="badge badge-info">RETAIL PULSE</span>
+            </div>
+            <div class="panel-body" id="retailChatter"></div>
+          </div>
+        </div>
+        <div class="kk-grid-2" style="margin-top:12px">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>CONGLOMERATE DRAMA TRACKER</h3>
+              <span class="badge badge-negative">FAMILY MOVES</span>
+            </div>
+            <div class="panel-body" id="conglomerateDrama"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <h3>GOJEK/GRAB DRIVER SENTIMENT</h3>
+              <span class="badge badge-positive">CONSUMER PULSE</span>
+            </div>
+            <div class="panel-body" id="gojekSentiment"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cultural Catalysts -->
+      <div class="kk-section" id="kk-cultural">
+        <div class="kk-grid-2">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>SEASONAL / CULTURAL EVENTS</h3>
+              <span class="badge badge-info">RAMADAN · LEBARAN · IMLEK</span>
+            </div>
+            <div class="panel-body" id="seasonalEvents"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <h3>VIRAL / MEME STOCK ALERTS</h3>
+              <span class="badge badge-negative">EARLY WARNING</span>
+            </div>
+            <div class="panel-body" id="viralAlerts"></div>
+          </div>
+        </div>
+        <div class="kk-grid-2" style="margin-top:12px">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>REGIONAL PRIDE INVESTING</h3>
+              <span class="badge badge-info">GEO-SENTIMENT</span>
+            </div>
+            <div class="panel-body" id="regionalPride"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <h3>CAMPUS HYPE TRACKER</h3>
+              <span class="badge badge-info">GEN-Z PULSE</span>
+            </div>
+            <div class="panel-body" id="campusHype"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conglomerate Deep Dive -->
+      <div class="kk-section" id="kk-conglomerate">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>INDONESIAN CONGLOMERATE MAP</h3>
+            <span class="badge badge-info">FAMILY TREE · SUCCESSION · NET WORTH</span>
+          </div>
+          <div class="panel-body" id="conglomerateMap"></div>
+        </div>
+      </div>
+
+      <!-- Wealth Transfer -->
+      <div class="kk-section" id="kk-wealth">
+        <div class="kk-grid-2">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>GENERATIONAL STOCK PREFERENCES</h3>
+              <span class="badge badge-info">BOOMER vs GEN-Z</span>
+            </div>
+            <div class="panel-body" id="genStockPrefs"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <h3>FAMILY OFFICE INDICATORS</h3>
+              <span class="badge badge-positive">SMART MONEY</span>
+            </div>
+            <div class="panel-body" id="familyOffice"></div>
+          </div>
+        </div>
+        <div class="panel" style="margin-top:12px">
+          <div class="panel-header">
+            <h3>SUCCESSION RISK SCORECARD</h3>
+            <span class="badge badge-negative">AGING PATRIARCHS · UNPREPARED HEIRS</span>
+          </div>
+          <div class="panel-body" id="successionRisk"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ SUPPLY CHAIN VIEW ============ -->
+    <div class="view" id="view-supply">
+      <div class="kk-header">
+        <h2>SUPPLY CHAIN & COMMODITY INTELLIGENCE</h2>
+        <p class="subtitle">Commodity flows, weather impact, port logistics, and China dependency analysis</p>
+      </div>
+      <div class="kk-grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>COMMODITY PRICE DASHBOARD</h3>
+            <span class="badge badge-info">CPO · NICKEL · COAL · GOLD</span>
+          </div>
+          <div class="panel-body" id="commodityDashboard"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <h3>PORT & LOGISTICS STATUS</h3>
+            <span class="badge badge-info">INTER-ISLAND</span>
+          </div>
+          <div class="panel-body" id="portStatus"></div>
+        </div>
+      </div>
+      <div class="kk-grid-2" style="margin-top:12px">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>WEATHER IMPACT FORECAST</h3>
+            <span class="badge badge-negative">MONSOON · EL NINO</span>
+          </div>
+          <div class="panel-body" id="weatherImpact"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <h3>CHINA DEPENDENCY SCORES</h3>
+            <span class="badge badge-negative">BEIJING RISK</span>
+          </div>
+          <div class="panel-body" id="chinaDependency"></div>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:12px">
+        <div class="panel-header">
+          <h3>INTER-ISLAND ECONOMIC DISPARITY</h3>
+          <span class="badge badge-info">JAVA vs OUTER ISLANDS</span>
+        </div>
+        <div class="panel-body" id="islandDisparity"></div>
+      </div>
+    </div>
+
+    <!-- ============ INFORMAL ECONOMY VIEW ============ -->
+    <div class="view" id="view-informal">
+      <div class="kk-header">
+        <h2>INFORMAL ECONOMY INTEGRATION</h2>
+        <p class="subtitle">60% of Indonesia's economy is informal. Street vendors, ojek drivers, and traditional markets tell the real story.</p>
+      </div>
+      <div class="kk-grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>WARUNG INDEX</h3>
+            <span class="badge badge-info">STREET VENDOR SENTIMENT</span>
+          </div>
+          <div class="panel-body" id="warungIndex"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <h3>OJEK DEMAND HEATMAP</h3>
+            <span class="badge badge-info">CONSUMER SPENDING PROXY</span>
+          </div>
+          <div class="panel-body" id="ojekDemand"></div>
+        </div>
+      </div>
+      <div class="kk-grid-2" style="margin-top:12px">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>PASAR TRADISIONAL PRICES</h3>
+            <span class="badge badge-negative">INFLATION EARLY WARNING</span>
+          </div>
+          <div class="panel-body" id="pasarPrices"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <h3>REMITTANCE FLOW ANALYSIS</h3>
+            <span class="badge badge-positive">FOREIGN WORKER FLOWS</span>
+          </div>
+          <div class="panel-body" id="remittanceFlow"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ STOCK DETAIL MODAL ============ -->
+    <div class="modal-overlay" id="stockModal" onclick="closeModal(event)">
+      <div class="modal" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <h2 id="modalTitle">--</h2>
+          <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <span>IDX SUPERCOMPUTER TERMINAL v2.0 — KONEKSI & KULTUR EDITION</span>
+    <span>Data refreshes daily at market open (09:00 WIB)</span>
+    <span id="footerTime">--</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

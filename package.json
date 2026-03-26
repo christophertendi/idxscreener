@@ -1,0 +1,18 @@
+{
+  "name": "idx-supercomputer-dashboard",
+  "version": "1.0.0",
+  "description": "Indonesian Stock Exchange Supercomputer Dashboard - Bloomberg-inspired IDX analytics",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.16",
+    "axios": "^1.6.7",
+    "cors": "^2.8.5",
+    "dbffile": "^1.12.0",
+    "express": "^4.18.2",
+    "node-cron": "^3.0.3"
+  }
+}
