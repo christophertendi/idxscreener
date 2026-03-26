@@ -6,8 +6,12 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const cron = require('node-cron');
-const { fetchAllStockData, getRankedStocks, getMarketSummary, getLastSourceMeta } = require('./services/stockDataService');
+const isVercel = process.env.VERCEL === '1';
+let cron = null;
+if (!isVercel) {
+  try { cron = require('node-cron'); } catch (_) { /* skip cron in serverless */ }
+}
+const { fetchAllStockData, getBootstrapSnapshot, getRankedStocks, getMarketSummary, getLastSourceMeta } = require('./services/stockDataService');
 const { generateNews, getNewsByTimeframe, getNewsByTicker, getNewsByCategory } = require('./services/newsService');
 const { generateKoneksiKulturData } = require('./services/koneksiKulturService');
 
@@ -48,12 +52,10 @@ async function ensureDataLoaded() {
   await refreshPromise;
 }
 
-const isVercel = process.env.VERCEL === '1';
-
 // Refresh schedules only for long-running server process (not serverless runtime)
-if (!isVercel) {
-  cron.schedule('0 2 * * 1-5', () => refreshData().catch(err => console.error('[CRON] refresh failed:', err.message))); // Market open refresh
-  cron.schedule('*/30 9-15 * * 1-5', () => refreshData().catch(err => console.error('[CRON] refresh failed:', err.message))); // Intraday refresh (WIB approx)
+if (!isVercel && cron) {
+  cron.schedule('0 2 * * 1-5', () => refreshData().catch(err => console.error('[CRON] refresh failed:', err.message)));
+  cron.schedule('*/30 9-15 * * 1-5', () => refreshData().catch(err => console.error('[CRON] refresh failed:', err.message)));
 }
 
 // --- API Routes ---

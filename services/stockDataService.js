@@ -618,6 +618,7 @@ function getLastSourceMeta() {
 
 module.exports = {
   fetchAllStockData,
+  getBootstrapSnapshot,
   getRankedStocks,
   getMarketSummary,
   getLastSourceMeta,
