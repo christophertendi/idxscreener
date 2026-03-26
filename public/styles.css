@@ -1994,3 +1994,75 @@ body {
   .commodity-row > :nth-child(5),
   .commodity-row > :nth-child(6) { display: none; }
 }
+
+/* ==========================================
+   STREAM & AUTH
+   ========================================== */
+.stream-header { margin-bottom: 16px; }
+.stream-header h2 { font-size: 16px; font-weight: 700; letter-spacing: 2px; }
+
+.stream-auth-bar { background: var(--bg-panel); border: 1px solid var(--border-primary); border-radius: 4px; padding: 12px 16px; margin-bottom: 12px; }
+.auth-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.auth-input { background: var(--bg-primary); border: 1px solid var(--border-primary); color: var(--text-primary); font-family: var(--font-mono); font-size: 11px; padding: 7px 12px; border-radius: 4px; outline: none; }
+.auth-input:focus { border-color: var(--accent-cyan); }
+.auth-btn { background: var(--bg-tertiary); border: 1px solid var(--border-secondary); color: var(--text-secondary); font-family: var(--font-mono); font-size: 10px; padding: 7px 14px; border-radius: 4px; cursor: pointer; letter-spacing: 0.5px; transition: all 0.2s; }
+.auth-btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+.auth-btn-primary { background: var(--accent-cyan-dim); color: var(--accent-cyan); border-color: var(--accent-cyan); }
+.auth-btn-primary:hover { background: var(--accent-blue-dim); }
+.auth-btn-anon { color: var(--text-muted); font-style: italic; }
+.auth-user-bar { display: flex; align-items: center; gap: 12px; }
+.auth-user-name { font-size: 11px; font-weight: 600; color: var(--accent-cyan); }
+
+.stream-composer { margin-bottom: 12px; }
+.stream-title-input { width: 100%; background: var(--bg-primary); border: 1px solid var(--border-primary); color: var(--text-primary); font-family: var(--font-mono); font-size: 12px; padding: 10px 12px; border-radius: 4px; outline: none; margin-bottom: 8px; }
+.stream-title-input:focus { border-color: var(--accent-cyan); }
+.stream-tag-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.stream-body-input { width: 100%; background: var(--bg-primary); border: 1px solid var(--border-primary); color: var(--text-primary); font-family: var(--font-sans); font-size: 11px; padding: 10px 12px; border-radius: 4px; outline: none; resize: vertical; line-height: 1.6; margin-bottom: 8px; }
+.stream-body-input:focus { border-color: var(--accent-cyan); }
+
+.stream-feed { display: flex; flex-direction: column; gap: 8px; }
+
+.stream-post { background: var(--bg-panel); border: 1px solid var(--border-primary); border-radius: 4px; display: flex; transition: border-color 0.2s; }
+.stream-post:hover { border-color: var(--border-secondary); }
+
+.post-vote { display: flex; flex-direction: column; align-items: center; padding: 10px 8px; gap: 2px; min-width: 40px; background: var(--bg-secondary); border-radius: 4px 0 0 4px; }
+.vote-btn { background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; padding: 2px; line-height: 1; transition: color 0.15s; }
+.vote-btn:hover { color: var(--accent-cyan); }
+.vote-btn.upvoted { color: var(--positive); }
+.vote-btn.downvoted { color: var(--negative); }
+.vote-count { font-size: 11px; font-weight: 700; color: var(--text-primary); }
+
+.post-content { flex: 1; padding: 12px 14px; }
+.post-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 9px; flex-wrap: wrap; }
+.post-tag { padding: 2px 8px; border-radius: 2px; font-weight: 600; letter-spacing: 0.5px; background: var(--accent-cyan-dim); color: var(--accent-cyan); }
+.post-tag-analysis { background: var(--positive-dim); color: var(--positive); }
+.post-tag-question { background: var(--warning-dim); color: var(--warning); }
+.post-tag-dd { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+.post-tag-meme { background: var(--negative-dim); color: var(--negative); }
+.post-author { color: var(--accent-cyan); font-weight: 600; }
+.post-time { color: var(--text-muted); }
+.post-ticker { padding: 1px 5px; border-radius: 2px; background: var(--bg-active); color: var(--accent-cyan); border: 1px solid var(--border-primary); font-size: 9px; cursor: pointer; }
+
+.post-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; cursor: pointer; }
+.post-title:hover { color: var(--accent-cyan); }
+.post-body-preview { font-size: 11px; color: var(--text-tertiary); line-height: 1.5; font-family: var(--font-sans); margin-bottom: 8px; }
+.post-actions { display: flex; gap: 12px; font-size: 10px; }
+.post-action-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-family: var(--font-mono); font-size: 10px; padding: 3px 6px; border-radius: 3px; transition: all 0.15s; }
+.post-action-btn:hover { background: var(--bg-hover); color: var(--text-secondary); }
+
+.post-comments { padding: 0 14px 12px; border-top: 1px solid var(--border-primary); margin-top: 8px; }
+.comment { padding: 8px 0; border-bottom: 1px solid var(--border-primary); font-size: 11px; }
+.comment:last-child { border-bottom: none; }
+.comment-meta { font-size: 9px; color: var(--text-muted); margin-bottom: 3px; }
+.comment-meta .comment-author { color: var(--accent-cyan); font-weight: 600; }
+.comment-body { color: var(--text-secondary); line-height: 1.5; font-family: var(--font-sans); }
+.comment-input-row { display: flex; gap: 6px; margin-top: 8px; }
+.comment-input { flex: 1; background: var(--bg-primary); border: 1px solid var(--border-primary); color: var(--text-primary); font-family: var(--font-sans); font-size: 10px; padding: 6px 10px; border-radius: 3px; outline: none; }
+.comment-input:focus { border-color: var(--accent-cyan); }
+
+.stream-empty { text-align: center; padding: 40px; color: var(--text-muted); font-size: 11px; }
+
+@media (max-width: 600px) {
+  .auth-form { flex-direction: column; }
+  .post-vote { min-width: 32px; padding: 8px 4px; }
+}

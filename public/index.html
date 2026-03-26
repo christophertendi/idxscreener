@@ -6,6 +6,10 @@
   <title>IDX Supercomputer | Indonesian Stock Exchange Dashboard</title>
   <!-- Using system font Arial -->
   <link rel="stylesheet" href="styles.css">
+  <!-- Firebase CDN -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <!-- Top Header Bar -->
@@ -43,17 +47,17 @@
       <button class="nav-tab" data-view="screener" onclick="switchView('screener')">
         <span class="tab-icon">◈</span> SCREENER
       </button>
-      <button class="nav-tab" data-view="news" onclick="switchView('news')">
-        <span class="tab-icon">◰</span> NEWS
-      </button>
-      <button class="nav-tab" data-view="koneksi" onclick="switchView('koneksi')">
-        <span class="tab-icon">◉</span> KONEKSI & KULTUR
+      <button class="nav-tab" data-view="intelligence" onclick="switchView('intelligence')">
+        <span class="tab-icon">◉</span> INTELLIGENCE
       </button>
       <button class="nav-tab" data-view="supply" onclick="switchView('supply')">
         <span class="tab-icon">◇</span> SUPPLY CHAIN
       </button>
       <button class="nav-tab" data-view="informal" onclick="switchView('informal')">
         <span class="tab-icon">◌</span> INFORMAL ECONOMY
+      </button>
+      <button class="nav-tab" data-view="stream" onclick="switchView('stream')">
+        <span class="tab-icon">◬</span> STREAM
       </button>
     </div>
     <div class="nav-search">
@@ -265,32 +269,14 @@
       </div>
     </div>
 
-    <!-- ============ NEWS VIEW ============ -->
-    <div class="view" id="view-news">
-      <div class="news-header">
-        <h2>NEWS & ANALYSIS</h2>
-        <p class="subtitle">Market intelligence across all timeframes</p>
-        <div class="news-filters">
-          <button class="nf-tab active" onclick="filterNews('all')">ALL</button>
-          <button class="nf-tab" onclick="filterNews('daily')">DAILY</button>
-          <button class="nf-tab" onclick="filterNews('weekly')">WEEKLY</button>
-          <button class="nf-tab" onclick="filterNews('monthly')">MONTHLY</button>
-          <button class="nf-tab" onclick="filterNews('quarterly')">QUARTERLY</button>
-          <button class="nf-tab" onclick="filterNews('yearly')">YEARLY</button>
-        </div>
-      </div>
-      <div class="news-grid" id="newsGrid">
-        <!-- Filled by JS -->
-      </div>
-    </div>
-
-    <!-- ============ KONEKSI & KULTUR VIEW ============ -->
-    <div class="view" id="view-koneksi">
+    <!-- ============ INTELLIGENCE VIEW (merged News + Koneksi & Kultur) ============ -->
+    <div class="view" id="view-intelligence">
       <div class="kk-header">
-        <h2>KONEKSI & KULTUR INTELLIGENCE</h2>
-        <p class="subtitle">"The most important financial statement isn't the balance sheet — it's the family tree."</p>
+        <h2>NEWS & INTELLIGENCE</h2>
+        <p class="subtitle">Market news, political risk, social sentiment, cultural catalysts, and conglomerate intelligence</p>
         <div class="kk-subtabs">
-          <button class="kk-tab active" onclick="switchKKTab('political')">POLITICAL RISK</button>
+          <button class="kk-tab active" onclick="switchKKTab('news')">NEWS FEED</button>
+          <button class="kk-tab" onclick="switchKKTab('political')">POLITICAL RISK</button>
           <button class="kk-tab" onclick="switchKKTab('social')">SOCIAL SENTIMENT</button>
           <button class="kk-tab" onclick="switchKKTab('cultural')">CULTURAL CATALYSTS</button>
           <button class="kk-tab" onclick="switchKKTab('conglomerate')">CONGLOMERATES</button>
@@ -298,141 +284,127 @@
         </div>
       </div>
 
+      <!-- News sub-tab -->
+      <div class="kk-section active" id="kk-news">
+        <div class="news-filters" style="margin-bottom:12px;">
+          <button class="nf-tab active" onclick="filterNews('all')">ALL</button>
+          <button class="nf-tab" onclick="filterNews('daily')">DAILY</button>
+          <button class="nf-tab" onclick="filterNews('weekly')">WEEKLY</button>
+          <button class="nf-tab" onclick="filterNews('monthly')">MONTHLY</button>
+          <button class="nf-tab" onclick="filterNews('quarterly')">QUARTERLY</button>
+          <button class="nf-tab" onclick="filterNews('yearly')">YEARLY</button>
+        </div>
+        <div class="news-grid" id="newsGrid"></div>
+      </div>
+
       <!-- Political Risk Radar -->
-      <div class="kk-section active" id="kk-political">
+      <div class="kk-section" id="kk-political">
         <div class="kk-grid-3">
           <div class="panel">
-            <div class="panel-header">
-              <h3>REGULATORY IMPACT RADAR</h3>
-              <span class="badge badge-negative" id="riskLevelBadge">--</span>
-            </div>
+            <div class="panel-header"><h3>REGULATORY IMPACT RADAR</h3><span class="badge badge-negative" id="riskLevelBadge">--</span></div>
             <div class="panel-body" id="regulatoryRadar"></div>
           </div>
           <div class="panel">
-            <div class="panel-header">
-              <h3>GOVERNMENT TENDER MONITOR</h3>
-              <span class="badge badge-info">LIVE TRACKING</span>
-            </div>
+            <div class="panel-header"><h3>GOVERNMENT TENDER MONITOR</h3><span class="badge badge-info">LIVE TRACKING</span></div>
             <div class="panel-body" id="tenderMonitor"></div>
           </div>
           <div class="panel">
-            <div class="panel-header">
-              <h3>POLITICAL CONNECTION HEATMAP</h3>
-              <span class="badge badge-info">TIER SYSTEM</span>
-            </div>
+            <div class="panel-header"><h3>POLITICAL CONNECTION HEATMAP</h3><span class="badge badge-info">TIER SYSTEM</span></div>
             <div class="panel-body" id="politicalHeatmap"></div>
           </div>
         </div>
       </div>
 
-      <!-- Social Sentiment Fusion -->
+      <!-- Social Sentiment -->
       <div class="kk-section" id="kk-social">
         <div class="kk-grid-2">
-          <div class="panel">
-            <div class="panel-header">
-              <h3>INFLUENCER IMPACT TRACKER</h3>
-              <span class="badge badge-info">TIKTOK · IG · YT · X</span>
-            </div>
-            <div class="panel-body" id="influencerTracker"></div>
-          </div>
-          <div class="panel">
-            <div class="panel-header">
-              <h3>WARUNG KOPI CHATTER</h3>
-              <span class="badge badge-info">RETAIL PULSE</span>
-            </div>
-            <div class="panel-body" id="retailChatter"></div>
-          </div>
+          <div class="panel"><div class="panel-header"><h3>INFLUENCER IMPACT TRACKER</h3><span class="badge badge-info">TIKTOK · IG · YT · X</span></div><div class="panel-body" id="influencerTracker"></div></div>
+          <div class="panel"><div class="panel-header"><h3>WARUNG KOPI CHATTER</h3><span class="badge badge-info">RETAIL PULSE</span></div><div class="panel-body" id="retailChatter"></div></div>
         </div>
         <div class="kk-grid-2" style="margin-top:12px">
-          <div class="panel">
-            <div class="panel-header">
-              <h3>CONGLOMERATE DRAMA TRACKER</h3>
-              <span class="badge badge-negative">FAMILY MOVES</span>
-            </div>
-            <div class="panel-body" id="conglomerateDrama"></div>
-          </div>
-          <div class="panel">
-            <div class="panel-header">
-              <h3>GOJEK/GRAB DRIVER SENTIMENT</h3>
-              <span class="badge badge-positive">CONSUMER PULSE</span>
-            </div>
-            <div class="panel-body" id="gojekSentiment"></div>
-          </div>
+          <div class="panel"><div class="panel-header"><h3>CONGLOMERATE DRAMA TRACKER</h3><span class="badge badge-negative">FAMILY MOVES</span></div><div class="panel-body" id="conglomerateDrama"></div></div>
+          <div class="panel"><div class="panel-header"><h3>GOJEK/GRAB DRIVER SENTIMENT</h3><span class="badge badge-positive">CONSUMER PULSE</span></div><div class="panel-body" id="gojekSentiment"></div></div>
         </div>
       </div>
 
       <!-- Cultural Catalysts -->
       <div class="kk-section" id="kk-cultural">
         <div class="kk-grid-2">
-          <div class="panel">
-            <div class="panel-header">
-              <h3>SEASONAL / CULTURAL EVENTS</h3>
-              <span class="badge badge-info">RAMADAN · LEBARAN · IMLEK</span>
-            </div>
-            <div class="panel-body" id="seasonalEvents"></div>
-          </div>
-          <div class="panel">
-            <div class="panel-header">
-              <h3>VIRAL / MEME STOCK ALERTS</h3>
-              <span class="badge badge-negative">EARLY WARNING</span>
-            </div>
-            <div class="panel-body" id="viralAlerts"></div>
-          </div>
+          <div class="panel"><div class="panel-header"><h3>SEASONAL / CULTURAL EVENTS</h3><span class="badge badge-info">RAMADAN · LEBARAN · IMLEK</span></div><div class="panel-body" id="seasonalEvents"></div></div>
+          <div class="panel"><div class="panel-header"><h3>VIRAL / MEME STOCK ALERTS</h3><span class="badge badge-negative">EARLY WARNING</span></div><div class="panel-body" id="viralAlerts"></div></div>
         </div>
         <div class="kk-grid-2" style="margin-top:12px">
-          <div class="panel">
-            <div class="panel-header">
-              <h3>REGIONAL PRIDE INVESTING</h3>
-              <span class="badge badge-info">GEO-SENTIMENT</span>
-            </div>
-            <div class="panel-body" id="regionalPride"></div>
-          </div>
-          <div class="panel">
-            <div class="panel-header">
-              <h3>CAMPUS HYPE TRACKER</h3>
-              <span class="badge badge-info">GEN-Z PULSE</span>
-            </div>
-            <div class="panel-body" id="campusHype"></div>
-          </div>
+          <div class="panel"><div class="panel-header"><h3>REGIONAL PRIDE INVESTING</h3><span class="badge badge-info">GEO-SENTIMENT</span></div><div class="panel-body" id="regionalPride"></div></div>
+          <div class="panel"><div class="panel-header"><h3>CAMPUS HYPE TRACKER</h3><span class="badge badge-info">GEN-Z PULSE</span></div><div class="panel-body" id="campusHype"></div></div>
         </div>
       </div>
 
-      <!-- Conglomerate Deep Dive -->
+      <!-- Conglomerates -->
       <div class="kk-section" id="kk-conglomerate">
-        <div class="panel">
-          <div class="panel-header">
-            <h3>INDONESIAN CONGLOMERATE MAP</h3>
-            <span class="badge badge-info">FAMILY TREE · SUCCESSION · NET WORTH</span>
-          </div>
-          <div class="panel-body" id="conglomerateMap"></div>
-        </div>
+        <div class="panel"><div class="panel-header"><h3>INDONESIAN CONGLOMERATE MAP</h3><span class="badge badge-info">FAMILY TREE · SUCCESSION · NET WORTH</span></div><div class="panel-body" id="conglomerateMap"></div></div>
       </div>
 
       <!-- Wealth Transfer -->
       <div class="kk-section" id="kk-wealth">
         <div class="kk-grid-2">
-          <div class="panel">
-            <div class="panel-header">
-              <h3>GENERATIONAL STOCK PREFERENCES</h3>
-              <span class="badge badge-info">BOOMER vs GEN-Z</span>
-            </div>
-            <div class="panel-body" id="genStockPrefs"></div>
-          </div>
-          <div class="panel">
-            <div class="panel-header">
-              <h3>FAMILY OFFICE INDICATORS</h3>
-              <span class="badge badge-positive">SMART MONEY</span>
-            </div>
-            <div class="panel-body" id="familyOffice"></div>
+          <div class="panel"><div class="panel-header"><h3>GENERATIONAL STOCK PREFERENCES</h3><span class="badge badge-info">BOOMER vs GEN-Z</span></div><div class="panel-body" id="genStockPrefs"></div></div>
+          <div class="panel"><div class="panel-header"><h3>FAMILY OFFICE INDICATORS</h3><span class="badge badge-positive">SMART MONEY</span></div><div class="panel-body" id="familyOffice"></div></div>
+        </div>
+        <div class="panel" style="margin-top:12px"><div class="panel-header"><h3>SUCCESSION RISK SCORECARD</h3><span class="badge badge-negative">AGING PATRIARCHS · UNPREPARED HEIRS</span></div><div class="panel-body" id="successionRisk"></div></div>
+      </div>
+    </div>
+
+    <!-- ============ STREAM VIEW (Reddit-style discussion) ============ -->
+    <div class="view" id="view-stream">
+      <div class="stream-header">
+        <h2>IDX STREAM</h2>
+        <p class="subtitle">Community discussion board — share analysis, ask questions, discuss stocks</p>
+      </div>
+
+      <!-- Auth Bar -->
+      <div class="stream-auth-bar" id="streamAuthBar">
+        <div id="authLoggedOut">
+          <div class="auth-form">
+            <input type="email" id="authEmail" placeholder="Email" class="auth-input">
+            <input type="password" id="authPassword" placeholder="Password" class="auth-input">
+            <button class="auth-btn auth-btn-primary" onclick="streamSignIn()">Sign In</button>
+            <button class="auth-btn" onclick="streamSignUp()">Sign Up</button>
+            <button class="auth-btn auth-btn-anon" onclick="streamSignInAnon()">Anonymous</button>
           </div>
         </div>
-        <div class="panel" style="margin-top:12px">
-          <div class="panel-header">
-            <h3>SUCCESSION RISK SCORECARD</h3>
-            <span class="badge badge-negative">AGING PATRIARCHS · UNPREPARED HEIRS</span>
+        <div id="authLoggedIn" style="display:none;">
+          <div class="auth-user-bar">
+            <span class="auth-user-name" id="authUserName">--</span>
+            <button class="auth-btn" onclick="streamSignOut()">Sign Out</button>
           </div>
-          <div class="panel-body" id="successionRisk"></div>
         </div>
+      </div>
+
+      <!-- New Post Composer (visible when logged in) -->
+      <div class="stream-composer" id="streamComposer" style="display:none;">
+        <div class="panel">
+          <div class="panel-body">
+            <input type="text" id="postTitle" placeholder="Post title (e.g. BBCA analysis, market outlook...)" class="stream-title-input">
+            <div class="stream-tag-row">
+              <select id="postTag" class="auth-input" style="width:auto;">
+                <option value="discussion">Discussion</option>
+                <option value="analysis">Analysis</option>
+                <option value="question">Question</option>
+                <option value="dd">Due Diligence</option>
+                <option value="meme">Meme</option>
+                <option value="news">News</option>
+              </select>
+              <input type="text" id="postTicker" placeholder="Ticker (optional, e.g. BBCA)" class="auth-input" style="width:100px;">
+            </div>
+            <textarea id="postBody" placeholder="What's on your mind? Share your analysis, ask a question..." class="stream-body-input" rows="4"></textarea>
+            <button class="auth-btn auth-btn-primary" onclick="streamCreatePost()">Post</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Posts Feed -->
+      <div class="stream-feed" id="streamFeed">
+        <div class="loading">Loading stream...</div>
       </div>
     </div>
 
@@ -539,11 +511,12 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <span>IDX SUPERCOMPUTER TERMINAL v2.0 — KONEKSI & KULTUR EDITION</span>
+    <span>IDX SUPERCOMPUTER TERMINAL v3.0 — INTELLIGENCE + STREAM EDITION</span>
     <span>Data refreshes daily at market open (09:00 WIB)</span>
     <span id="footerTime">--</span>
   </footer>
 
   <script src="app.js"></script>
+  <script src="stream.js"></script>
 </body>
 </html>

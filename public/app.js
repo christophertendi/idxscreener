@@ -14,7 +14,7 @@ let stockSourceMeta = {};
 let currentView = 'overview';
 let currentTimeframe = 'daily';
 let currentNewsFilter = 'all';
-let currentKKTab = 'political';
+let currentKKTab = 'news';
 let screenerSortOrder = 'desc';
 let moversMode = 'gainers';
 
