@@ -23,6 +23,7 @@ let stockData = [];
 let newsData = [];
 let marketSummary = {};
 let koneksiKulturData = {};
+let refreshPromise = null;
 
 async function refreshData() {
   console.log(`[${new Date().toISOString()}] Refreshing IDX data...`);
@@ -34,11 +35,41 @@ async function refreshData() {
   console.log(`[${new Date().toISOString()}] Data refreshed: ${stockData.length} stocks, ${newsData.length} news items, source=${marketSummary.dataSource?.provider || 'unknown'}`);
 }
 
-// Refresh data every day at 09:00 WIB (02:00 UTC) and every 30 minutes during market hours
-cron.schedule('0 2 * * 1-5', () => refreshData().catch(err => console.error('[CRON] refresh failed:', err.message))); // Market open refresh
-cron.schedule('*/30 9-15 * * 1-5', () => refreshData().catch(err => console.error('[CRON] refresh failed:', err.message))); // Intraday refresh (WIB approx)
+async function ensureDataLoaded() {
+  if (stockData.length > 0) return;
+
+  if (!refreshPromise) {
+    refreshPromise = refreshData().finally(() => {
+      refreshPromise = null;
+    });
+  }
+
+  await refreshPromise;
+}
+
+const isVercel = process.env.VERCEL === '1';
+
+// Refresh schedules only for long-running server process (not serverless runtime)
+if (!isVercel) {
+  cron.schedule('0 2 * * 1-5', () => refreshData().catch(err => console.error('[CRON] refresh failed:', err.message))); // Market open refresh
+  cron.schedule('*/30 9-15 * * 1-5', () => refreshData().catch(err => console.error('[CRON] refresh failed:', err.message))); // Intraday refresh (WIB approx)
+}
 
 // --- API Routes ---
+
+app.use('/api', async (req, res, next) => {
+  try {
+    await ensureDataLoaded();
+    next();
+  } catch (err) {
+    res.status(503).json({
+      success: false,
+      message: `Data initialization failed: ${err.message}`,
+      source: getLastSourceMeta(),
+      timestamp: new Date().toISOString(),
+    });
+  }
+});
 
 // Market summary / IHSG overview
 app.get('/api/market-summary', (req, res) => {
@@ -221,9 +252,14 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-async function startServer() {
-  try {
-    await refreshData();
+if (!isVercel) {
+  (async () => {
+    try {
+      await ensureDataLoaded();
+    } catch (err) {
+      console.error('Initial data load failed, server will continue and retry on next API request:', err.message);
+    }
+
     app.listen(PORT, () => {
       console.log(`\n╔══════════════════════════════════════════════════════╗`);
       console.log(`║  IDX SUPERCOMPUTER DASHBOARD                         ║`);
@@ -233,10 +269,7 @@ async function startServer() {
       console.log(`║  Source: ${getLastSourceMeta()?.provider || 'Unknown'}                         ║`);
       console.log(`╚══════════════════════════════════════════════════════╝\n`);
     });
-  } catch (err) {
-    console.error('Failed to initialize server data:', err);
-    process.exit(1);
-  }
+  })();
 }
 
-startServer();
+module.exports = app;
