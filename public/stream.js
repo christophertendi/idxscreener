@@ -4,7 +4,7 @@
  */
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB0w-MLDR9OyFplq3oiXyZ2jnpQpSazSa0",
+  apiKey: "AIzaSyB0w-MlDR9OyFplq3oiXyZ2jnpQpSazSa0",
   authDomain: "idxscreener44.firebaseapp.com",
   projectId: "idxscreener44",
   storageBucket: "idxscreener44.firebasestorage.app",
